@@ -1,7 +1,10 @@
 from swipe_speed import *
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QSlider, QHBoxLayout, QLabel, QPushButton
+from PyQt5.QtWidgets import QApplication, QWidget, QSlider, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QLineEdit, QFrame
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
+
+min_value = get_min_value()
+max_value = get_max_value()
 
 
 class SliderValueSender(QObject):
@@ -16,22 +19,41 @@ class RangeSlider(QWidget):
         self.size = 0
 
     def init_ui(self, min_value, max_value):
-        self.size = max_value - min_value
-        size = self.size
-        center_frame = min_value + int((size)*0.5)
-        print(size, center_frame)
-        layout = QHBoxLayout()
+        self.min_value = min_value
+        self.max_value = max_value
 
-        # 최소값 레이블 생성
+        self.center_frame = int((min_value + max_value)*0.5)
+
+        layout = QVBoxLayout()
+        first_line_layout = QHBoxLayout()
+
+        self.file_in = QLineEdit()
+        self.file_in.setText('file name')
+        first_line_layout.addWidget(self.file_in)
+
+        self.start_in = QLineEdit()
+        self.start_in.setText(str(min_value))
+        first_line_layout.addWidget(self.start_in)
+
+        self.end_in = QLineEdit()
+        self.end_in.setText(str(max_value))
+        first_line_layout.addWidget(self.end_in)
+
+        self.button_save = QPushButton("save")
+        first_line_layout.addWidget(self.button_save)
+
+        layout.addLayout(first_line_layout)
+        second_line_layout = QHBoxLayout()
+
         self.min_label = QLabel(f"{min_value}: {min_value + int(size*0.2)}")
-        layout.addWidget(self.min_label)
-        # 최소값 슬라이더 생성
+        second_line_layout.addWidget(self.min_label)
+
         self.min_slider = QSlider()
         self.min_slider.setOrientation(Qt.Horizontal)
         self.min_slider.setMinimum(min_value)
-        self.min_slider.setMaximum(center_frame)
-        self.min_slider.setTickPosition(QSlider.TicksBothSides)  # 양쪽에 눈금 표시
-        self.min_slider.setTickInterval(10)  # 눈금 간격
+        self.min_slider.setMaximum(self.center_frame)
+        self.min_slider.setTickPosition(QSlider.TicksBothSides)
+        self.min_slider.setTickInterval(10)
         self.min_slider.setValue(min_value + int(size*0.2))
         self.min_slider.setStyleSheet("""
             QSlider {
@@ -64,15 +86,14 @@ class RangeSlider(QWidget):
             }
         """)
 
-        layout.addWidget(self.min_slider)
+        second_line_layout.addWidget(self.min_slider)
 
-        # 최대값 슬라이더 생성
         self.max_slider = QSlider()
         self.max_slider.setOrientation(Qt.Horizontal)
-        self.max_slider.setMinimum(center_frame)
-        self.max_slider.setMaximum(max_value)
-        self.max_slider.setTickPosition(QSlider.TicksBothSides)  # 양쪽에 눈금 표시
-        self.max_slider.setTickInterval(10)  # 눈금 간격
+        self.max_slider.setMinimum(self.center_frame)
+        self.max_slider.setMaximum(self.max_value)
+        self.max_slider.setTickPosition(QSlider.TicksBothSides)
+        self.max_slider.setTickInterval(10)
         self.max_slider.setValue(max_value - int(size*0.2))
         self.max_slider.setStyleSheet("""
             QSlider::groove:horizontal {
@@ -98,23 +119,40 @@ class RangeSlider(QWidget):
                 border-radius: 7px;
             }
         """)
-        layout.addWidget(self.max_slider)
+        second_line_layout.addWidget(self.max_slider)
 
-        # 최대값 레이블 생성
         self.max_label = QLabel(f"{max_value - int(size*0.2)}: {max_value}")
-        layout.addWidget(self.max_label)
+        second_line_layout.addWidget(self.max_label)
 
-        self.button = QPushButton("make")  # 버튼 생성
-        layout.addWidget(self.button)  # 버튼을 레이아웃에 추가
+        self.button = QPushButton("make")
+        second_line_layout.addWidget(self.button)
 
         # 슬라이더 값 변경 시 호출되는 슬롯 설정
         self.min_slider.valueChanged.connect(self.update_min_label)
         self.max_slider.valueChanged.connect(self.update_max_label)
-
+        layout.addLayout(second_line_layout)
         self.setLayout(layout)
 
         self.sender = SliderValueSender()
         self.button.clicked.connect(self.send_slider_value)
+        self.button_save.clicked.connect(self.save_values)
+
+    def save_values(self):
+        set_file_name(self.file_in.text())
+        set_start_frame(int(self.start_in.text()))
+        set_end_frame(int(self.end_in.text()))
+        self.min_value = int(self.start_in.text())
+        self.max_value = int(self.end_in.text())
+        self.update_min_label
+
+        self.size = self.max_value - self.min_value
+        size = self.size
+        self.center_frame = self.min_value + int((size)*0.5)
+        print(size, self.center_frame)
+        self.min_slider.setMinimum(self.min_value)
+        self.min_slider.setMaximum(self.center_frame)
+        self.max_slider.setMinimum(self.center_frame)
+        self.max_slider.setMaximum(self.max_value)
 
     def send_slider_value(self):
         set_front_value(self.min_slider.value())
@@ -122,19 +160,15 @@ class RangeSlider(QWidget):
         make()
 
     def update_min_label(self, value):
-        self.min_label.setText(f"{min_value}: {value}")
+        self.min_label.setText(f"{self.min_value}: {value}")
 
     def update_max_label(self, value):
-        self.max_label.setText(f"{value}: {max_value}")
-
-
-min_value = get_min_value()
-max_value = get_max_value()
+        self.max_label.setText(f"{value}: {self.max_value}")
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     slider_window = RangeSlider(min_value, max_value)
-    slider_window.resize(1000, 200)  # 위젯 사이즈 조정
+    slider_window.resize(1000, 200)
     slider_window.show()
     sys.exit(app.exec_())

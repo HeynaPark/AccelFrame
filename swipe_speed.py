@@ -37,9 +37,9 @@ def duplicate_frame(start, delay, frame_idx, frame, output, flag):
 
     if flag == 'back':
         if start - interval <= frame_idx < start:
-            n = 3
-        elif delay <= frame_idx < start:
             n = 2
+        elif delay <= frame_idx < start:
+            n = 1
 
     if start_frame <= frame_idx <= end_frame:
         count = 0
@@ -50,50 +50,15 @@ def duplicate_frame(start, delay, frame_idx, frame, output, flag):
             output.write(frame)
             count += 1
 
-# def duplicate_frame(delay_list, frame_idx, frame, output, flag):
-#     ratio = 0.2
-#     size = delay_list[1] - delay_list[0]
-#     interval = math.ceil(ratio*size)
-
-#     n = 1
-
-#     if flag == 'front':
-#         if delay_list[0] <= frame_idx <= delay_list[0] + interval:
-#             n = 2
-#         elif delay_list[0] <= frame_idx <= front_delay:
-#             n = 1
-#         # elif delay_list[1] - int(size*ratio) <= frame_idx <= delay_list[1]:
-#         #     n = 1
-
-#     if flag == 'back':
-#         # if delay_list[0] <= frame_idx < delay_list[0] + math.ceil(size*ratio):
-#         #     n = 2
-#         if delay_list[1] - interval <= frame_idx < delay_list[1]:
-#             n = 3
-#         elif back_delay <= frame_idx < delay_list[1] - interval:
-#             n = 2
-
-#     if delay_list[0] <= frame_idx <= delay_list[1]:
-#         count = 0
-#         while count < n:
-#             cv2.putText(frame, "+ " + str(count), (400,
-#                                                    200), cv2.FONT_HERSHEY_SIMPLEX, 4, (0, 255, 125), 3)
-#             print(frame_idx, n)
-#             output.write(frame)
-#             count += 1
-
 
 def make_movie(video_path, start_frame, end_frame, output_path):
     global front_delay
     global back_delay
+
     video = cv2.VideoCapture(video_path)
 
     swipe_idx = 0
     ratio = 0.25
-    # front_delay = [start_frame[swipe_idx], start_frame[swipe_idx] +
-    #                int((end_frame[swipe_idx]-start_frame[swipe_idx])*ratio)]
-    # back_delay = [end_frame[swipe_idx] -
-    #               int((end_frame[swipe_idx]-start_frame[swipe_idx])*ratio), end_frame[swipe_idx]]
 
     print('delay : ', front_delay, back_delay)
 
@@ -120,19 +85,6 @@ def make_movie(video_path, start_frame, end_frame, output_path):
                         frame_cnt, frame, output, 'front')
         duplicate_frame(end_frame, back_delay,
                         frame_cnt, frame, output, 'back')
-        # duplicate_frame(back_delay, frame_cnt, frame, output, 'back')
-
-        # if frame_cnt == back_delay[1]:
-        #     swipe_idx += 1
-        #     print('swipe change')
-        #     if len(end_frame) == swipe_idx:
-        #         continue
-        #     else:
-        #         pass
-        # front_delay = [start_frame[swipe_idx], start_frame[swipe_idx] +
-        #                int((end_frame[swipe_idx]-start_frame[swipe_idx])*0.15)]
-        # back_delay = [end_frame[swipe_idx] -
-        #               int((end_frame[swipe_idx]-start_frame[swipe_idx])*0.15), end_frame[swipe_idx]]
 
     video.release()
     output.release()
@@ -158,6 +110,25 @@ def set_back_value(v):
     global back_delay
     back_delay = v
     print('back_delay', back_delay)
+
+
+def set_file_name(v):
+    global file_name, video_path, output_path
+    file_name = v
+    video_path = "video/" + file_name
+    output_path = 'output/' + file_name
+    print('get file ', file_name)
+
+
+def set_start_frame(v):
+    global start_frame
+    start_frame = v
+    print('start frame', start_frame)
+
+
+def set_end_frame(v):
+    global end_frame
+    end_frame = v
 
 
 def make():
