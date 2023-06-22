@@ -1,7 +1,10 @@
 from swipe_speed import *
 import sys
+import os
 from PyQt5.QtWidgets import QApplication, QWidget, QSlider, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QLineEdit, QFrame
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
+from PyQt5.QtGui import QPainter, QDragEnterEvent, QDropEvent
+
 
 min_value = get_min_value()
 max_value = get_max_value()
@@ -17,6 +20,8 @@ class RangeSlider(QWidget):
 
         self.init_ui(min_value, max_value)
         self.size = 0
+        self.setAcceptDrops(True)
+        self.file = ''
 
     def init_ui(self, min_value, max_value):
         self.min_value = min_value
@@ -25,6 +30,12 @@ class RangeSlider(QWidget):
         self.center_frame = int((min_value + max_value)*0.5)
 
         layout = QVBoxLayout()
+
+        status_line_layout = QHBoxLayout()
+        self.lb_status = QLabel("Drag the sample file and bring it here")
+        status_line_layout.addWidget(self.lb_status)
+        layout.addLayout(status_line_layout)
+
         first_line_layout = QHBoxLayout()
 
         self.file_in = QLineEdit()
@@ -40,7 +51,7 @@ class RangeSlider(QWidget):
         first_line_layout.addWidget(self.end_in)
 
         self.button_save = QPushButton("save")
-        first_line_layout.addWidget(self.button_save)
+        # first_line_layout.addWidget(self.button_save)
 
         layout.addLayout(first_line_layout)
         second_line_layout = QHBoxLayout()
@@ -124,7 +135,7 @@ class RangeSlider(QWidget):
         self.max_label = QLabel(f"{max_value - int(size*0.2)}: {max_value}")
         second_line_layout.addWidget(self.max_label)
 
-        self.button = QPushButton("make")
+        self.button = QPushButton("Make")
         second_line_layout.addWidget(self.button)
 
         # 슬라이더 값 변경 시 호출되는 슬롯 설정
@@ -138,7 +149,7 @@ class RangeSlider(QWidget):
         self.button_save.clicked.connect(self.save_values)
 
     def save_values(self):
-        set_file_name(self.file_in.text())
+        set_file_name(self.file)
         set_start_frame(int(self.start_in.text()))
         set_end_frame(int(self.end_in.text()))
         self.min_value = int(self.start_in.text())
@@ -155,15 +166,52 @@ class RangeSlider(QWidget):
         self.max_slider.setMaximum(self.max_value)
 
     def send_slider_value(self):
+
         set_front_value(self.min_slider.value())
         set_back_value(self.max_slider.value())
+        self.lb_status.setText("making...")
+        QApplication.processEvents()
         make()
+        self.lb_status.setText("Done")
 
     def update_min_label(self, value):
         self.min_label.setText(f"{self.min_value}: {value}")
 
     def update_max_label(self, value):
         self.max_label.setText(f"{value}: {self.max_value}")
+
+    def dragEnterEvent(self, event: QDragEnterEvent):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event: QDropEvent):
+        if event.mimeData().hasUrls():
+            file_urls = [url.toLocalFile() for url in event.mimeData().urls()]
+            if file_urls:
+                file_path = file_urls[0]
+                self.file = file_path
+                self.file_str = os.path.basename(file_path)
+                self.file_in.setText(self.file_str)
+                print("Dropped file:", self.file)
+
+                if self.file_str == 'sireum.mp4':
+                    self.min_value = 409
+                    self.max_value = 510
+                elif self.file_str == 'soccer.mp4':
+                    self.min_value = 120
+                    self.max_value = 164
+                elif self.file_str == 'tennis1.mp4':
+                    self.min_value = 68
+                    self.max_value = 116
+                elif self.file_str == 'tennis2.mp4':
+                    self.min_value = 75
+                    self.max_value = 122
+                self.start_in.setText(str(self.min_value))
+                self.end_in.setText(str(self.max_value))
+
+                self.save_values()
+                self.lb_status.setText(
+                    "1) Move the [slider]  2) click the [Make] button")
 
 
 if __name__ == '__main__':

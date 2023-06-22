@@ -1,7 +1,7 @@
 
 import cv2
 import math
-
+import os
 
 # input
 # data1
@@ -11,13 +11,13 @@ import math
 
 
 # data2
-file_name = "soccer_hide_stabil.mp4"
+file_name = "/sample/soccer.mp4"
 start_frame = 121
 end_frame = 165
 size = end_frame-start_frame
 
-video_path = "video/" + file_name
-output_path = 'output/' + file_name
+# video_path = "video/" + file_name
+output_path = ''
 
 front_delay = 0
 back_delay = 0
@@ -113,22 +113,29 @@ def set_back_value(v):
 
 
 def set_file_name(v):
-    global file_name, video_path, output_path
-    file_name = v
-    video_path = "video/" + file_name
-    output_path = 'output/' + file_name
-    print('get file ', file_name)
+    global video_path, output_path
+    video_path = v
+
+    output_path = os.path.join(os.path.dirname(video_path), os.path.splitext(
+        os.path.basename(video_path))[0]+"_output.mp4")
+    # file_name = v
+    # video_path = "video/" + file_name
+    # output_path = 'output/' + file_name
+
+    print('get file name ', video_path)
+    print('output file ', output_path)
 
 
 def set_start_frame(v):
     global start_frame
-    start_frame = v
+    start_frame = v+2
     print('start frame', start_frame)
 
 
 def set_end_frame(v):
     global end_frame
-    end_frame = v
+    end_frame = v+1
+    print('end_frame ', end_frame)
 
 
 def make():
