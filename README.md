@@ -17,5 +17,6 @@ opticalflow -> 회전 영상에서는 부적절
 - output
 
 
-https://github.com/HeynaPark/AccelSwipe/assets/90448406/9be35f30-6dfb-410b-8fe1-70ac586ecdbf
+
+https://github.com/HeynaPark/AccelSwipe/assets/90448406/3b756c3a-e055-495c-b610-c4f047aa3dac
 
